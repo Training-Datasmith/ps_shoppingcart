@@ -112,9 +112,8 @@ class Ps_Shoppingcart extends Module implements WidgetInterface
          */
         if (!empty($this->context->smarty->getTemplateVars('cart'))) {
             return $this->context->smarty->getTemplateVars('cart');
-        } else {
-            return (new CartPresenter())->present($this->context->cart);
         }
+        return (new CartPresenter())->present($this->context->cart);
     }
 
     /**
@@ -265,7 +264,7 @@ class Ps_Shoppingcart extends Module implements WidgetInterface
         $helper->table = $this->table;
         $lang = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
         $helper->default_form_language = $lang->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ?: 0;
 
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitBlockCart';
