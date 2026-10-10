@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php"
+         colors="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestSize="true"
+         beStrictAboutTodoAnnotatedTests="true">
+    <testsuites>
+        <testsuite name="module-tests">
+            <file>tests/AjaxControllerTest.php</file>
+            <file>tests/ConfigValuesTest.php</file>
+            <file>tests/ConfigXmlTest.php</file>
+            <file>tests/DirectoryGuardTest.php</file>
+            <file>tests/GetContentTest.php</file>
+            <file>tests/HookDisplayHeaderTest.php</file>
+            <file>tests/InstallTest.php</file>
+            <file>tests/ModuleMetadataTest.php</file>
+            <file>tests/RenderFormTest.php</file>
+            <file>tests/RenderModalTest.php</file>
+            <file>tests/RenderWidgetTest.php</file>
+            <file>tests/SuiteManifestTest.php</file>
+            <file>tests/UninstallPrestaShop16ModuleTest.php</file>
+            <file>tests/Upgrade2005Test.php</file>
+            <file>tests/WidgetVariablesTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>
