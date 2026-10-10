@@ -69,121 +69,29 @@ abstract class ShoppingCartTestCase extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return array stdout, stderr, exitCode
+     * @return array stdout, stderr, exitCode, tmpDir
      */
-    protected function runPhpChildScript($scriptBody, $bootstrapDefines = true)
+    protected function runPhpChildScript($scriptBody)
     {
         $tmpDir = sys_get_temp_dir() . '/ps-cart-child-' . uniqid('', true);
         mkdir($tmpDir);
         $scriptFile = $tmpDir . '/child.php';
-        $bootstrap = '';
-        if ($bootstrapDefines) {
-            $bootstrap = "define('_PS_VERSION_', '1.7.8.0');\n"
-                . "define('_PS_MODULE_DIR_', '/tmp/ps-modules/');\n"
-                . "require_once '" . addslashes(dirname(__DIR__) . '/tests/stubs/WidgetInterface.php') . "';\n"
-                . "require_once '" . addslashes(dirname(__DIR__) . '/tests/stubs/CartPresenter.php') . "';\n"
-                . "require_once '" . addslashes(dirname(__DIR__) . '/tests/stubs/PrestaShopDouble.php') . "';\n";
-        }
-        $full = "<?php\nerror_reporting(-1);\nini_set('display_errors', 'stderr');\n"
-            . $bootstrap . $scriptBody;
+        $full = "<?php\nerror_reporting(-1);\nini_set('display_errors', 'stderr');\n" . $scriptBody;
         file_put_contents($scriptFile, $full);
 
+        $exitCodeFile = $tmpDir . '/exitcode.txt';
         $cmd = 'php -d error_reporting=-1 -d display_errors=stderr -d display_startup_errors=1 '
             . '-d log_errors=0 -d output_buffering=0 '
-            . escapeshellarg($scriptFile) . ' 2>' . escapeshellarg($tmpDir . '/stderr.txt');
+            . escapeshellarg($scriptFile) . ' 2>' . escapeshellarg($tmpDir . '/stderr.txt')
+            . '; echo $? > ' . escapeshellarg($exitCodeFile);
         $stdout = shell_exec($cmd);
         if ($stdout === null) {
             $stdout = '';
         }
         $stderr = is_file($tmpDir . '/stderr.txt') ? file_get_contents($tmpDir . '/stderr.txt') : '';
-        $exitCode = 0;
+        $exitCode = is_file($exitCodeFile) ? (int) trim(file_get_contents($exitCodeFile)) : 1;
+
         return array($stdout, $stderr, $exitCode, $tmpDir);
-    }
-
-    protected function runAjaxControllerChild(array $request, $action = null)
-    {
-        $stateFile = sys_get_temp_dir() . '/ajax-state-' . uniqid('', true) . '.json';
-        $shutdownFile = sys_get_temp_dir() . '/ajax-shutdown-' . uniqid('', true) . '.txt';
-        $tmpDir = sys_get_temp_dir() . '/ajax-child-' . uniqid('', true);
-        mkdir($tmpDir);
-
-        $getExport = var_export($request, true);
-        $moduleDir = dirname(__DIR__);
-        $script = <<<'PHP'
-<?php
-error_reporting(-1);
-ini_set('display_errors', 'stderr');
-define('_PS_VERSION_', '1.7.8.0');
-define('_PS_MODULE_DIR_', '/tmp/ps-modules/');
-require_once '%WIDGET%';
-require_once '%CART%';
-require_once '%STUB%';
-require_once '%MODULE%/ps_shoppingcart.php';
-require_once '%MODULE%/controllers/front/ajax.php';
-
-$_GET = %GET%;
-$_POST = array();
-foreach ($_GET as $k => $v) {
-    $_REQUEST[$k] = $v;
-}
-
-Ps_ShoppingcartAjaxTestModule::$ajaxStateFile = '%STATE%';
-register_shutdown_function(function () {
-    file_put_contents('%SHUTDOWN%', (string) ModuleFrontController::$initContentCount);
-});
-
-ob_start();
-echo 'BUFFER_SENTINEL';
-
-$controller = new Ps_ShoppingcartAjaxModuleFrontController();
-$controller->module = new Ps_ShoppingcartAjaxTestModule();
-try {
-    $controller->initContent();
-} catch (Exception $e) {
-    if (!($e instanceof TestAdminRedirect)) {
-        throw $e;
-    }
-}
-PHP;
-        $script = str_replace(
-            array('%WIDGET%', '%CART%', '%STUB%', '%MODULE%', '%GET%', '%STATE%', '%SHUTDOWN%'),
-            array(
-                addslashes($moduleDir . '/tests/stubs/WidgetInterface.php'),
-                addslashes($moduleDir . '/tests/stubs/CartPresenter.php'),
-                addslashes($moduleDir . '/tests/stubs/PrestaShopDouble.php'),
-                addslashes($moduleDir),
-                $getExport,
-                addslashes($stateFile),
-                addslashes($shutdownFile),
-            ),
-            $script
-        );
-
-        if ($action !== null) {
-            // merge post style for add-to-cart tests
-        }
-
-        $scriptFile = $tmpDir . '/run.php';
-        file_put_contents($scriptFile, $script);
-
-        $cmd = 'php -d error_reporting=-1 -d display_errors=stderr -d display_startup_errors=1 '
-            . '-d log_errors=0 -d output_buffering=0 '
-            . escapeshellarg($scriptFile) . ' 2>' . escapeshellarg($tmpDir . '/stderr.txt');
-        $stdout = shell_exec($cmd);
-        if ($stdout === null) {
-            $stdout = '';
-        }
-        $stderr = file_get_contents($tmpDir . '/stderr.txt');
-        $state = is_file($stateFile) ? json_decode(file_get_contents($stateFile), true) : array();
-        $parentCount = is_file($shutdownFile) ? (int) file_get_contents($shutdownFile) : 0;
-
-        return array(
-            'stdout' => $stdout,
-            'stderr' => $stderr,
-            'state' => is_array($state) ? $state : array(),
-            'parentInitCount' => $parentCount,
-            'tmpDir' => $tmpDir,
-        );
     }
 
     protected function runAjaxWithPost(array $post, array $get = array())
@@ -228,27 +136,26 @@ PHP;
 
         $scriptFile = $tmpDir . '/run.php';
         file_put_contents($scriptFile, $script);
+        $exitCodeFile = $tmpDir . '/exitcode.txt';
         $cmd = 'php -d error_reporting=-1 -d display_errors=stderr -d display_startup_errors=1 '
             . '-d log_errors=0 -d output_buffering=0 '
-            . escapeshellarg($scriptFile) . ' 2>' . escapeshellarg($tmpDir . '/stderr.txt');
+            . escapeshellarg($scriptFile) . ' 2>' . escapeshellarg($tmpDir . '/stderr.txt')
+            . '; echo $? > ' . escapeshellarg($exitCodeFile);
         $stdout = shell_exec($cmd);
         if ($stdout === null) {
             $stdout = '';
         }
         $stderr = file_get_contents($tmpDir . '/stderr.txt');
+        $exitCode = is_file($exitCodeFile) ? (int) trim(file_get_contents($exitCodeFile)) : 1;
         $state = is_file($stateFile) ? json_decode(file_get_contents($stateFile), true) : array();
         $parentCount = is_file($shutdownFile) ? (int) file_get_contents($shutdownFile) : 0;
 
         return array(
             'stdout' => $stdout,
             'stderr' => $stderr,
+            'exitCode' => $exitCode,
             'state' => is_array($state) ? $state : array(),
             'parentInitCount' => $parentCount,
         );
-    }
-
-    protected function readAssignKeys(Ps_Shoppingcart $module)
-    {
-        return array_keys($module->smarty->getTemplateVars());
     }
 }

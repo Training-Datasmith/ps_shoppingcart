@@ -10,7 +10,8 @@ class DirectoryGuardTest extends ShoppingCartTestCase
         $full = dirname(__DIR__) . '/' . $relativePath;
         $script = 'include ' . var_export($full, true) . ";\n"
             . "echo 'SENTINEL_AFTER_INCLUDE';\n";
-        list($stdout, $stderr) = $this->runPhpChildScript($script, false);
+        list($stdout, $stderr, $exitCode) = $this->runPhpChildScript($script);
+        $this->assertSame(0, $exitCode);
         $this->assertSame('', $stdout);
         $this->assertNotContains('SENTINEL_AFTER_INCLUDE', $stdout);
         $this->assertNoPhpDiagnostics($stdout, $stderr);

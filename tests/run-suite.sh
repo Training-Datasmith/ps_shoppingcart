@@ -52,7 +52,7 @@ assert_clean_log() {
     cat "${logfile}" >&2
     exit 1
   fi
-  if ! grep -q '^OK (' "${logfile}"; then
+  if ! grep -Eq '^OK \(57 tests, [0-9]+ assertions\)$' "${logfile}"; then
     echo "Expected OK summary missing in ${logfile}" >&2
     cat "${logfile}" >&2
     exit 1

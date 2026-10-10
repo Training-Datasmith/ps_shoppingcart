@@ -18,6 +18,7 @@ class AjaxControllerTest extends ShoppingCartTestCase
                 'id_customization' => '6',
             )
         );
+        $this->assertSame(0, $result['exitCode']);
         $this->assertNoPhpDiagnostics($result['stdout'], $result['stderr']);
         $decoded = json_decode($result['stdout'], true);
         $this->assertInternalType('array', $decoded);
@@ -39,6 +40,7 @@ class AjaxControllerTest extends ShoppingCartTestCase
                 'id_customization' => '3',
             )
         );
+        $this->assertSame(0, $result['exitCode']);
         $this->assertNoPhpDiagnostics($result['stdout'], $result['stderr']);
         $args = $result['state']['renderModal'];
         $this->assertSame(8, $args[0]);
@@ -49,6 +51,7 @@ class AjaxControllerTest extends ShoppingCartTestCase
     public function testOtherActionOmitsModal()
     {
         $result = $this->runAjaxWithPost(array(), array('action' => 'refresh'));
+        $this->assertSame(0, $result['exitCode']);
         $this->assertNoPhpDiagnostics($result['stdout'], $result['stderr']);
         $decoded = json_decode($result['stdout'], true);
         $this->assertNull($decoded['modal']);
@@ -65,6 +68,7 @@ class AjaxControllerTest extends ShoppingCartTestCase
                 'id_customization' => '0',
             )
         );
+        $this->assertSame(0, $result['exitCode']);
         $this->assertNoPhpDiagnostics($result['stdout'], $result['stderr']);
         $this->assertNotContains('BUFFER_SENTINEL', $result['stdout']);
         $this->assertInternalType('array', json_decode($result['stdout'], true));

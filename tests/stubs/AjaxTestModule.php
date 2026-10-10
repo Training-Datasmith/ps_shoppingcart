@@ -6,11 +6,16 @@ class Ps_ShoppingcartAjaxTestModule extends Ps_Shoppingcart
 
     public function renderModal($id_product, $id_product_attribute, $id_customization)
     {
-        $payload = array(
-            'renderModal' => array($id_product, $id_product_attribute, $id_customization),
-        );
+        $existing = array();
+        if (self::$ajaxStateFile && is_file(self::$ajaxStateFile)) {
+            $existing = json_decode(file_get_contents(self::$ajaxStateFile), true);
+            if (!is_array($existing)) {
+                $existing = array();
+            }
+        }
+        $existing['renderModal'] = array($id_product, $id_product_attribute, $id_customization);
         if (self::$ajaxStateFile) {
-            file_put_contents(self::$ajaxStateFile, json_encode($payload));
+            file_put_contents(self::$ajaxStateFile, json_encode($existing));
         }
 
         return 'MODAL_RENDER_SENTINEL';

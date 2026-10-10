@@ -34,10 +34,6 @@ class TestSmarty
         }
     }
 
-    public function clearAssignLog()
-    {
-        $this->vars = array();
-    }
 }
 
 class TestFrontController
@@ -76,7 +72,7 @@ class TestLink
     public function getAdminLink($controller, $withToken = true)
     {
         TestLink::$adminLinkLog[] = func_get_args();
-        return 'LINK_ADMIN_' . $controller . '_' . ($withToken ? 'token' : 'notoken');
+        return 'LINK_ADMIN_SENTINEL';
     }
 }
 
@@ -183,7 +179,6 @@ class HelperForm
     public $token;
     public $tpl_vars = array();
 
-    public static $instances = array();
     public static $lastForms = array();
 
     public function generateForm($forms)
@@ -311,7 +306,6 @@ class Module
         Tools::$getAdminTokenLiteLog = array();
         Configuration::reset();
         Configuration::$updateReturn = null;
-        HelperForm::$instances = array();
         HelperForm::$lastForms = array();
         \PrestaShop\PrestaShop\Adapter\Presenter\Cart\CartPresenter::$presentLog = array();
         \PrestaShop\PrestaShop\Adapter\Presenter\Cart\CartPresenter::$presentResult = array(

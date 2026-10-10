@@ -21,9 +21,11 @@ class GetContentTest extends ShoppingCartTestCase
             $module->getContent();
             $this->fail('Expected redirect');
         } catch (TestAdminRedirect $e) {
+            $this->assertStringStartsWith('LINK_ADMIN_SENTINEL', $e->url);
             $this->assertContains('configure=ps_shoppingcart', $e->url);
             $this->assertContains('conf=6', $e->url);
         }
+        $this->assertSame(array(array('AdminModules')), TestLink::$adminLinkLog);
         $this->assertCount(1, Configuration::$updateLog);
         $this->assertSame(array('PS_BLOCK_CART_AJAX', 1), Configuration::$updateLog[0]);
     }
@@ -37,8 +39,10 @@ class GetContentTest extends ShoppingCartTestCase
             $module->getContent();
             $this->fail('Expected redirect');
         } catch (TestAdminRedirect $e) {
+            $this->assertStringStartsWith('LINK_ADMIN_SENTINEL', $e->url);
             $this->assertContains('conf=6', $e->url);
         }
+        $this->assertSame(array(array('AdminModules')), TestLink::$adminLinkLog);
         $this->assertSame(array('PS_BLOCK_CART_AJAX', 0), Configuration::$updateLog[0]);
     }
 

@@ -43,6 +43,8 @@ class RenderFormTest extends ShoppingCartTestCase
         $module->context->language->id = 9;
         $module->renderForm();
         $helper = HelperForm::$lastInstance;
+        $this->assertSame(array(array('AdminModules', false)), TestLink::$adminLinkLog);
+        $this->assertStringStartsWith('LINK_ADMIN_SENTINEL', $helper->currentIndex);
         $this->assertContains('configure=ps_shoppingcart', $helper->currentIndex);
         $this->assertContains('tab_module=front_office_features', $helper->currentIndex);
         $this->assertContains('module_name=ps_shoppingcart', $helper->currentIndex);

@@ -5,9 +5,22 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="${ROOT}/ps_shoppingcart.php"
 BACKUP="$(mktemp)"
 cp "${TARGET}" "${BACKUP}"
-trap 'cp "${BACKUP}" "${TARGET}"' EXIT INT TERM
 
-sed -i "s/if (!in_array(\$ajax, array(0, 1, '0', '1'), true))/if (\$ajax != 0 \&\& \$ajax != 1)/" "${TARGET}"
+restore() {
+  cp "${BACKUP}" "${TARGET}"
+}
+
+trap restore EXIT
+trap 'restore; exit 130' INT
+trap 'restore; exit 143' TERM
+
+HASH_BEFORE="$(md5sum "${TARGET}" | awk '{print $1}')"
+sed -i "s/if (!in_array(\$ajax, \[0, 1, '0', '1'\], true))/if (\$ajax != 0 \&\& \$ajax != 1)/" "${TARGET}"
+HASH_AFTER="$(md5sum "${TARGET}" | awk '{print $1}')"
+if [ "${HASH_BEFORE}" = "${HASH_AFTER}" ]; then
+  echo "Mutation proof failed: sed made no substitution" >&2
+  exit 1
+fi
 
 IMAGE="php@sha256:6ce95208609dc66df163ab936c970b3b34cd901b85c747102c5999f08ade9143"
 PHAR="$(bash "${ROOT}/tests/verify-phpunit.sh")"
@@ -38,6 +51,24 @@ fi
 
 if grep -q 'Parse error:' "${LOG}"; then
   echo "Mutation proof failed: parse error" >&2
+  exit 1
+fi
+
+if ! grep -q 'Tests: 1,' "${LOG}"; then
+  echo "Mutation proof failed: expected exactly one test run" >&2
+  cat "${LOG}" >&2
+  exit 1
+fi
+
+if ! grep -q 'GetContentTest::testSubmitGarbageShowsErrorAndDoesNotSave' "${LOG}"; then
+  echo "Mutation proof failed: expected test name in output" >&2
+  cat "${LOG}" >&2
+  exit 1
+fi
+
+if ! grep -qE '(Failures: 1|Errors: 1|FAILURES!|ERRORS!)' "${LOG}"; then
+  echo "Mutation proof failed: expected named test failure or error" >&2
+  cat "${LOG}" >&2
   exit 1
 fi
 

@@ -173,7 +173,7 @@ class Ps_Shoppingcart extends Module implements WidgetInterface
         $output = '';
         if (Tools::isSubmit('submitBlockCart')) {
             $ajax = Tools::getValue('PS_BLOCK_CART_AJAX');
-            if (!in_array($ajax, array(0, 1, '0', '1'), true)) {
+            if (!in_array($ajax, [0, 1, '0', '1'], true)) {
                 $output .= $this->displayError($this->trans('Ajax: Invalid choice.', [], 'Modules.Shoppingcart.Admin'));
             } else {
                 Configuration::updateValue('PS_BLOCK_CART_AJAX', (int) ($ajax));
