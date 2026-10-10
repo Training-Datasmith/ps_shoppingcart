@@ -65,6 +65,7 @@ class AjaxControllerTest extends ShoppingCartTestCase
                 'id_customization' => '0',
             )
         );
+        $this->assertNoPhpDiagnostics($result['stdout'], $result['stderr']);
         $this->assertNotContains('BUFFER_SENTINEL', $result['stdout']);
         $this->assertInternalType('array', json_decode($result['stdout'], true));
     }

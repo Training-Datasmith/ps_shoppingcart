@@ -124,6 +124,7 @@ class Configuration
 class Tools
 {
     public static $redirectLog = array();
+    public static $getAdminTokenLiteLog = array();
 
     public static function getValue($key, $default_value = false)
     {
@@ -153,7 +154,8 @@ class Tools
 
     public static function getAdminTokenLite($tab)
     {
-        return 'TOKEN_SENTINEL_' . $tab;
+        self::$getAdminTokenLiteLog[] = $tab;
+        return 'TOKEN_SENTINEL';
     }
 }
 
@@ -306,6 +308,7 @@ class Module
         TestLink::$moduleLinkLog = array();
         TestLink::$adminLinkLog = array();
         Tools::$redirectLog = array();
+        Tools::$getAdminTokenLiteLog = array();
         Configuration::reset();
         Configuration::$updateReturn = null;
         HelperForm::$instances = array();

@@ -5,9 +5,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 IMAGE="php@sha256:6ce95208609dc66df163ab936c970b3b34cd901b85c747102c5999f08ade9143"
 PHAR="$(bash "${ROOT}/tests/verify-phpunit.sh")"
 RESULTS_DIR="$(mktemp -d)"
-JUNIT="${RESULTS_DIR}/junit.xml"
+SHUFFLE_DIR="$(mktemp -d)"
 LOG="${RESULTS_DIR}/phpunit.log"
 SHUFFLE_LOG="${RESULTS_DIR}/phpunit-shuffle.log"
+
+trap 'rm -rf "${SHUFFLE_DIR}"' EXIT
 
 DOCKER=(docker)
 if ! docker info >/dev/null 2>&1; then
@@ -17,8 +19,14 @@ fi
 run_phpunit() {
   local config="$1"
   local logfile="$2"
+  local extra_mount="${3:-}"
+  local -a mount_args=()
+  if [ -n "${extra_mount}" ]; then
+    mount_args=(-v "${extra_mount}:${extra_mount}")
+  fi
   "${DOCKER[@]}" run --rm --entrypoint php \
     -v "${ROOT}:/src" -w /src \
+    "${mount_args[@]}" \
     -v "${PHAR}:/opt/phpunit-4.8.36.phar:ro" \
     "${IMAGE}" \
     -d error_reporting=-1 \
@@ -67,12 +75,13 @@ assert_clean_log "${LOG}"
 
 SHUFFLED="$("${DOCKER[@]}" run --rm --entrypoint php \
   -v "${ROOT}:/src" -w /src \
+  -v "${SHUFFLE_DIR}:${SHUFFLE_DIR}" \
+  -e "SHUFFLE_XML_DIR=${SHUFFLE_DIR}" \
   "${IMAGE}" \
   -d error_reporting=-1 \
   /src/tests/shuffle-run.php)"
-run_phpunit "${SHUFFLED}" "${SHUFFLE_LOG}"
+run_phpunit "${SHUFFLED}" "${SHUFFLE_LOG}" "${SHUFFLE_DIR}"
 assert_clean_log "${SHUFFLE_LOG}"
-rm -f "${ROOT}"/.phpunit-shuffled-*.xml
 
 echo "SUITE_OK"
 echo "LOG=${LOG}"

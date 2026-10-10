@@ -28,7 +28,12 @@ for ($i = $count - 1; $i > 0; --$i) {
     $files[$j] = $tmp;
 }
 
-$xmlPath = $repoRoot . '/.phpunit-shuffled-' . uniqid('', true) . '.xml';
+$outDir = getenv('SHUFFLE_XML_DIR');
+if ($outDir === false || $outDir === '') {
+    fwrite(STDERR, "SHUFFLE_XML_DIR environment variable is required\n");
+    exit(1);
+}
+$xmlPath = rtrim($outDir, '/') . '/phpunit-shuffled.xml';
 $bootstrap = $repoRoot . '/tests/bootstrap.php';
 
 $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"

@@ -46,7 +46,9 @@ class RenderFormTest extends ShoppingCartTestCase
         $this->assertContains('configure=ps_shoppingcart', $helper->currentIndex);
         $this->assertContains('tab_module=front_office_features', $helper->currentIndex);
         $this->assertContains('module_name=ps_shoppingcart', $helper->currentIndex);
-        $this->assertSame('TOKEN_SENTINEL_AdminModules', $helper->token);
+        $this->assertSame('TOKEN_SENTINEL', $helper->token);
+        $this->assertCount(1, Tools::$getAdminTokenLiteLog);
+        $this->assertSame('AdminModules', Tools::$getAdminTokenLiteLog[0]);
         $this->assertSame(array('lang-sentinel'), $helper->tpl_vars['languages']);
         $this->assertSame(9, $helper->tpl_vars['id_language']);
         $this->assertArrayHasKey('PS_BLOCK_CART_AJAX', $helper->tpl_vars['fields_value']);
